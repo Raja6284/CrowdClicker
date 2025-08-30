@@ -16,9 +16,6 @@ datasource db {
 model User {
   id             Int    @id @default(autoincrement())
   address        String @unique
-  balance_Id     Int    @default(0)
-  pending_amount Int    @default(0)
-  locked_amount  Int    @default(0)
   Task           Task[]
 }
 
@@ -29,6 +26,7 @@ model Task {
   options     Option[]
   signature   String
   amount      String
+  done        Boolean      @default(false)
   user_id     Int
   user        User         @relation(fields: [user_id], references: [id])
   submissions Submission[]
@@ -46,6 +44,8 @@ model Option {
 model Worker {
   id          Int          @id @default(autoincrement())
   address     String       @unique
+  pending_amount Int    
+  locked_amount  Int    
   submissions Submission[]
 }
 
@@ -58,4 +58,5 @@ model Submission {
   task_id   Int
   task      Task   @relation(fields: [task_id], references: [id])
   amount    String
+  @@unique([worker_id,task_id])
 }
