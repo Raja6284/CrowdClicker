@@ -5,7 +5,7 @@ const prismaClient = new PrismaClient()
 export async function getNextTask(userId:number){
     
 
-    const nextTask = await prismaClient.task.findMany({
+    const nextTask = await prismaClient.task.findFirst({
         where:{
             done:false,
            submissions:{
@@ -15,6 +15,7 @@ export async function getNextTask(userId:number){
            }
         },
         select:{
+            amount:true,
             id:true,
             options:true,
             title:true

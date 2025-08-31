@@ -17,6 +17,7 @@ model User {
   id             Int    @id @default(autoincrement())
   address        String @unique
   Task           Task[]
+  payouts       Payouts[]
 }
 
 //every user can have multiple tasks
@@ -25,7 +26,7 @@ model Task {
   title       String       @default("Click the best one you like")
   options     Option[]
   signature   String
-  amount      String
+  amount      Int
   done        Boolean      @default(false)
   user_id     Int
   user        User         @relation(fields: [user_id], references: [id])
@@ -57,6 +58,22 @@ model Submission {
   option    Option @relation(fields: [option_id], references: [id])
   task_id   Int
   task      Task   @relation(fields: [task_id], references: [id])
-  amount    String
+  amount    Int
   @@unique([worker_id,task_id])
+}
+
+
+model Payouts {
+  id            Int     @id @default(autoincrement())
+  user_id       Int
+  user          User    @relation(fields: [user_id],references: [id])
+  amount        Int
+  signature     String
+  status        TxnStatus
+}
+
+enum TxnStatus {
+  Processing
+  Success
+  Failure
 }

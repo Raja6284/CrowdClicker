@@ -17,6 +17,7 @@ const JWT_SECRET = process.env.JWT_SECRET ?? "";
 //console.log(JWT_SECRET)
 const accessKeyId = process.env.AWS_ACCESS_KEY ?? "";
 const secretAccessKey = process.env.AWS_SECRET ?? "";
+const TOTAL_DECIMAL = 10000
 
 //console.log(accessKeyId,secretAccessKey)
 
@@ -115,7 +116,7 @@ router.post('/task',authMiddleware, async(req,res)=>{
     const task = await tx.task.create({
       data:{
         title:parseData.data.title?? "",
-        amount:"20" ,//get that from the signature
+        amount:20 * TOTAL_DECIMAL ,//get that from the signature
         signature:parseData.data.signature,
         user_id:userId
       }
