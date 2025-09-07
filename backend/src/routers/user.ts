@@ -87,7 +87,8 @@ router.get('/task',authMiddleware,async(req,res)=>{
   })
 
   res.json({
-    result
+    title:taskDetails.title,
+    result:result
   })
 
   
@@ -160,7 +161,7 @@ router.get("/presignedUrl", authMiddleware, async (req, res) => {
 
   console.log({ url, fields });
   return res.json({
-    url,
+    preSignedUrl:url,
     fields,
   });
 });

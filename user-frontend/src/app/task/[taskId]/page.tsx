@@ -1,0 +1,68 @@
+
+"use client"
+
+import { useEffect, useState } from "react"
+import axios from "axios";
+import Appbar from "@/components/Appbar";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ""
+
+async function getTaskDetails(taskId:string) {
+        const response = await axios.get(`${BACKEND_URL}/v1/user/task?taskId=${taskId}`,{
+            headers:{
+                "Authorization":localStorage.getItem("token")
+            }
+        })
+
+        return response.data
+}
+
+
+export default function Page({ params }: { params: { taskId: string } }){
+
+    const {taskId} = params
+
+    const [result,setResult] = useState<Record<string,{
+        count:number,
+        option:{
+            imageUrl:string
+        }
+    }>>({});
+
+    // const [taskDetails,setTaskDetails] = useState<{
+    //     title?:string
+    // }>({});
+    const [taskTitle, setTaskTilte] = useState("")
+
+    useEffect(()=>{
+        getTaskDetails(taskId)
+            .then((data)=>{
+                setResult(data.result)
+                setTaskTilte(data.title)
+            })
+    },[taskId])
+
+    return (
+        <div>
+            <Appbar />
+            <div className='text-2xl pt-20 text-white flex justify-center'>
+            {taskTitle}
+        </div>
+        <div className='flex justify-center pt-8'>
+            {Object.keys(result || {}).map(taskId => <Task imageUrl={result[taskId].option.imageUrl} key={taskId} votes={result[taskId].count} />)}
+        </div>
+        </div>
+    )
+}
+
+function Task({imageUrl, votes}: {
+    imageUrl: string;
+    votes: number;
+}) {
+    return <div>
+        <img className="p-2 w-96 rounded-md" src={imageUrl} />
+        <div className='flex justify-center'>
+            {votes}
+        </div>
+    </div>
+}
