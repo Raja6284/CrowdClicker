@@ -37,6 +37,36 @@ router.post('/payout',workerAuthMiddleware,async (req,res)=>{
   //send required amoutn to worker address
   //create new txn or solana.web3.cre..
 
+  const txnId = "dfsfggsdss"
+
+  //first create an entry in your database and thant send the transaction to blockchian
+
+  await prismaClient.$transaction(async tx =>{
+      await tx.worker.update({
+        where:{
+          id:Number(userId)
+        },
+        data:{
+          pending_amount:{
+            decrement:worker.pending_amount
+          },
+          locked_amount:{
+            increment:worker.locked_amount
+          }
+        }
+      })
+
+
+      await tx.payouts.create({
+        data:{
+            user_id:userId,
+            amount:worker.pending_amount,
+            status:"Processing",
+            signature:txnId
+        }
+      })
+  })
+
 
 })
 
