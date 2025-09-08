@@ -1,9 +1,8 @@
 
-
 export default function Appbar(){
-    return(
+    return (
         <div>
-            hi three from Appbar form userSide
+            welcome to worker side of crowdclicker
         </div>
     )
 }
