@@ -18,9 +18,11 @@ async function getTaskDetails(taskId:string) {
 }
 
 
-export default function Page({ params }: { params: { taskId: string } }){
+export default function Page({params: { 
+    taskId 
+}}: {params: { taskId: string }}){
 
-    const {taskId} = params
+    //const {taskId} = params
 
     const [result,setResult] = useState<Record<string,{
         count:number,
