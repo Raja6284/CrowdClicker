@@ -33,7 +33,7 @@ export default function Appbar(){
             // console.log("this is signature " , signature);
             // console.log("this is Public key " + publicKey)
 
-            const response = await axios.post(`${BACKEND_URL}/v1/user/signin`,{
+            const response = await axios.post(`${BACKEND_URL}/v1/worker/signin`,{
                 signature,
                 publicKey:publicKey.toString()
             })

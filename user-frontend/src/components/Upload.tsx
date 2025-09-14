@@ -65,32 +65,28 @@ export const Upload = () => {
 
 
     async function makePayment() {
-    // Ensure the wallet is connected
+    
     if (!publicKey || !sendTransaction) {
         console.error("Wallet not connected!");
-        // You can show a notification to the user here
         return;
     }
 
-    // 1. Define constants for the transaction
-    const recipient = new PublicKey("FdPedWg8PMvDpi5dcwBZ6o5YY2Buxd1ivdvUpZQXft7P");
-    const lamportsToSend = 100000000; // 0.1 SOL
 
-    // 2. Wrap everything in a try...catch block for error handling
+    const recipient = new PublicKey("FdPedWg8PMvDpi5dcwBZ6o5YY2Buxd1ivdvUpZQXft7P");
+    const lamportsToSend = 100000000; 
+
+ 
     try {
         console.log("Starting payment process...");
 
-        // 3. Get the latest blockhash and context
         const {
             context: { slot: minContextSlot },
             value: { blockhash, lastValidBlockHeight }
         } = await connection.getLatestBlockhashAndContext();
         console.log(" Got latest blockhash");
 
-        // 4. Create a new transaction with the blockhash and fee payer
         const transaction = new Transaction();
 
-        // 6. Add the main transfer instruction
         transaction.add(
             SystemProgram.transfer({
                 fromPubkey: publicKey,
@@ -99,27 +95,24 @@ export const Upload = () => {
             })
         );
 
-        // 7. Send the transaction via the wallet adapter
         console.log("Sending transaction...");
         const signature = await sendTransaction(transaction, connection, { minContextSlot });
         console.log(" Transaction sent with signature:", signature);
         
-        // 8. Confirm the transaction
         console.log("Confirming transaction...");
         const confirmation = await connection.confirmTransaction({
             blockhash,
             lastValidBlockHeight,
             signature
-        }, 'confirmed'); // Use 'confirmed' or 'finalized'
+        }, 'confirmed'); 
 
-        // 9. Check if the transaction was successful on-chain
+
         if (confirmation.value.err) {
-            // This means the transaction was confirmed but resulted in a runtime error
             throw new Error(` On-chain transaction failed: ${confirmation.value.err}`);
         }
 
         console.log(" Transaction successfully confirmed!");
-        setTxSignature(signature); // Update your UI state only on success
+        setTxSignature(signature); 
 
     } catch (error) {
         console.error("Payment failed:", error);
