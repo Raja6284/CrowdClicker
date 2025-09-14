@@ -3,18 +3,26 @@ import { UploadImage } from "@/components/UploadImage";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { sendAndConfirmTransaction } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL 
 console.log(BACKEND_URL)
 
 export const Upload = () => {
     const [images, setImages] = useState<string[]>([]);
     const [title, setTitle] = useState("");
-
+    const [txSignature, setTxSignature] = useState("")
+    //const { connection } = useConnection();
+    const { publicKey, sendTransaction } = useWallet()
 
     const router = useRouter();
 
-    const txnSignature = "dfdsfasdfs"
+    const connection = new Connection(process.env.NEXT_PUBLIC_SOLANA_DEVNET_RPC_URL || "")
+
 
     async function onSubmit() {
         const response = await axios.post(`${BACKEND_URL}/v1/user/task`, {
@@ -22,7 +30,7 @@ export const Upload = () => {
                 imageUrl: image,
             })),
             title,
-            signature: txnSignature
+            signature: txSignature
         }, {
             headers: {
                 "Authorization": localStorage.getItem("token")
@@ -31,6 +39,93 @@ export const Upload = () => {
 
         router.push(`/task/${response.data.id}`)
     }
+
+    // async function makePayment() {
+
+    //     const transaction = new Transaction().add(
+    //         SystemProgram.transfer({
+    //             fromPubkey: publicKey!,
+    //             toPubkey: new PublicKey("FdPedWg8PMvDpi5dcwBZ6o5YY2Buxd1ivdvUpZQXft7P"),
+    //             lamports: 100000000
+    //         })
+    //     )
+    //     const {
+    //         context: { slot: minContextSlot },
+    //         value: { blockhash, lastValidBlockHeight }
+    //     } = await connection.getLatestBlockhashAndContext()
+
+    //     const signature = await sendTransaction(transaction,connection,{minContextSlot})
+
+    //     await connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature })
+    //     setTxSignature(signature)
+
+    // }
+
+
+
+
+    async function makePayment() {
+    // Ensure the wallet is connected
+    if (!publicKey || !sendTransaction) {
+        console.error("Wallet not connected!");
+        // You can show a notification to the user here
+        return;
+    }
+
+    // 1. Define constants for the transaction
+    const recipient = new PublicKey("FdPedWg8PMvDpi5dcwBZ6o5YY2Buxd1ivdvUpZQXft7P");
+    const lamportsToSend = 100000000; // 0.1 SOL
+
+    // 2. Wrap everything in a try...catch block for error handling
+    try {
+        console.log("Starting payment process...");
+
+        // 3. Get the latest blockhash and context
+        const {
+            context: { slot: minContextSlot },
+            value: { blockhash, lastValidBlockHeight }
+        } = await connection.getLatestBlockhashAndContext();
+        console.log(" Got latest blockhash");
+
+        // 4. Create a new transaction with the blockhash and fee payer
+        const transaction = new Transaction();
+
+        // 6. Add the main transfer instruction
+        transaction.add(
+            SystemProgram.transfer({
+                fromPubkey: publicKey,
+                toPubkey: recipient,
+                lamports: lamportsToSend,
+            })
+        );
+
+        // 7. Send the transaction via the wallet adapter
+        console.log("Sending transaction...");
+        const signature = await sendTransaction(transaction, connection, { minContextSlot });
+        console.log(" Transaction sent with signature:", signature);
+        
+        // 8. Confirm the transaction
+        console.log("Confirming transaction...");
+        const confirmation = await connection.confirmTransaction({
+            blockhash,
+            lastValidBlockHeight,
+            signature
+        }, 'confirmed'); // Use 'confirmed' or 'finalized'
+
+        // 9. Check if the transaction was successful on-chain
+        if (confirmation.value.err) {
+            // This means the transaction was confirmed but resulted in a runtime error
+            throw new Error(` On-chain transaction failed: ${confirmation.value.err}`);
+        }
+
+        console.log(" Transaction successfully confirmed!");
+        setTxSignature(signature); // Update your UI state only on success
+
+    } catch (error) {
+        console.error("Payment failed:", error);
+    }
+}
+
 
     return <div className="flex justify-center">
         <div className="max-w-screen-lg w-full">
@@ -58,8 +153,8 @@ export const Upload = () => {
             </div>
 
             <div className="flex justify-center">
-                <button onClick={onSubmit} type="button" className="mt-4 text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-full text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
-                    {"Submit Task"}
+                <button onClick={txSignature ? onSubmit : makePayment} type="button" className="mt-4 text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-full text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700">
+                    {txSignature ? "Submit Task" : "Pay 0.1 SOL"}
                 </button>
             </div>
 
